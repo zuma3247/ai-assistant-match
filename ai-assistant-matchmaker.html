@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant Matchmaker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #ffffff;
+            color: #1a1a1a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            padding: 24px;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                max-width: 600px;
+                padding: 40px;
+            }
+        }
+
+        .screen {
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .screen.fade-out {
+            opacity: 0;
+        }
+
+        .progress-indicator {
+            margin-bottom: 24px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: #0066ff;
+            border-radius: 3px;
+            transition: width 0.3s ease-in-out;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px 12px;
+            margin-bottom: 16px;
+            color: #666;
+            font-size: 16px;
+            transition: color 0.2s;
+        }
+
+        .back-button:hover {
+            color: #1a1a1a;
+        }
+
+        .question {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 32px;
+            color: #1a1a1a;
+        }
+
+        @media (min-width: 768px) {
+            .question {
+                font-size: 32px;
+            }
+        }
+
+        .answers {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .answer-button {
+            width: 100%;
+            padding: 20px 24px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 18px;
+            font-weight: 500;
+            background: #0066ff;
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        @media (min-width: 768px) {
+            .answer-button {
+                font-size: 20px;
+            }
+        }
+
+        .answer-button:hover {
+            background: #0052cc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+        }
+
+        .answer-button:active {
+            transform: translateY(0);
+        }
+
+        .node-10 .answers {
+            gap: 12px;
+        }
+
+        @media (min-width: 768px) {
+            .node-10 .answers {
+                flex-direction: row;
+                gap: 12px;
+            }
+
+            .node-10 .answer-button {
+                flex: 1;
+                font-size: 16px;
+                padding: 16px 20px;
+            }
+        }
+
+        .result-match-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .result-tool-name {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #1a1a1a;
+        }
+
+        @media (min-width: 768px) {
+            .result-tool-name {
+                font-size: 40px;
+            }
+        }
+
+        .result-description {
+            font-size: 18px;
+            line-height: 1.5;
+            color: #333;
+            margin-bottom: 24px;
+            font-style: italic;
+        }
+
+        .result-why {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #1a1a1a;
+            margin-bottom: 32px;
+        }
+
+        .result-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .start-over-button {
+            width: 100%;
+            padding: 16px 24px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            background: transparent;
+            color: #666;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .start-over-button:hover {
+            background: #f5f5f5;
+            border-color: #ccc;
+            color: #1a1a1a;
+        }
+
+        .tool-link-button {
+            width: 100%;
+            padding: 20px 24px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 18px;
+            font-weight: 500;
+            background: #0066ff;
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .tool-link-button {
+                font-size: 20px;
+            }
+        }
+
+        .tool-link-button:hover {
+            background: #0052cc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .result-screen {
+            background: #f8f9fa;
+            padding: 32px;
+            border-radius: 16px;
+        }
+
+        .welcome-screen {
+            text-align: left;
+        }
+
+        .welcome-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #1a1a1a;
+        }
+
+        @media (min-width: 768px) {
+            .welcome-title {
+                font-size: 42px;
+            }
+        }
+
+        .welcome-description {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 32px;
+        }
+
+        @media (min-width: 768px) {
+            .welcome-description {
+                font-size: 20px;
+            }
+        }
+
+        .get-started-button {
+            width: 100%;
+            padding: 20px 24px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 18px;
+            font-weight: 500;
+            background: #0066ff;
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        @media (min-width: 768px) {
+            .get-started-button {
+                font-size: 20px;
+            }
+        }
+
+        .get-started-button:hover {
+            background: #0052cc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="app" class="screen"></div>
+    </div>
+
+    <script>
+        // Decision tree data
+        const decisionTree = {
+            1: {
+                question: "What are you trying to do?",
+                answers: [
+                    { text: "Research / Web Browsing", next: 3, pathId: "research" },
+                    { text: "Creative writing / Coding", next: 2, pathId: "creative" }
+                ]
+            },
+            2: {
+                question: "Do you need the AI to handle huge documents, like an entire codebase or a full book?",
+                answers: [
+                    { text: "Yes, large files", next: 4, pathId: "large_docs" },
+                    { text: "No, standard tasks", next: 5, pathId: "no_large_docs" }
+                ]
+            },
+            3: {
+                question: "Do you need strict, sourced citations, like you'd expect in an academic paper?",
+                answers: [
+                    { text: "Yes, cite everything", next: 6, pathId: "citations" },
+                    { text: "Not really needed", next: 7, pathId: "no_citations" }
+                ]
+            },
+            4: {
+                question: "What's the main focus of those large documents?",
+                answers: [
+                    { text: "Deep writing and analysis", next: 8, pathId: "deep_writing" },
+                    { text: "Data crunching / code", next: 9, pathId: "data_crunching" }
+                ]
+            },
+            5: {
+                question: "Do you prefer working with an open-source model?",
+                answers: [
+                    { text: "Yes, open source", next: 10, pathId: "open_source" },
+                    { text: "No, proprietary", next: 11, pathId: "not_open_source" }
+                ]
+            },
+            6: {
+                question: "Are you already working inside Google Workspace?",
+                answers: [
+                    { text: "Yes, use Google", result: "gemini_path_a", pathId: "google_workspace" },
+                    { text: "No, don't use", result: "perplexity", pathId: "not_google_workspace" }
+                ]
+            },
+            7: {
+                question: "Are you looking for something built directly into Microsoft Office and Windows?",
+                answers: [
+                    { text: "Yes, Microsoft", result: "copilot", pathId: "microsoft" },
+                    { text: "No, not Microsoft", next: 12, pathId: "not_microsoft" }
+                ]
+            },
+            8: {
+                question: "Is data privacy and keeping your documents off corporate servers a concern?",
+                answers: [
+                    { text: "Privacy is critical", result: "mistral_path_b", pathId: "privacy_concern" },
+                    { text: "Not a concern", result: "claude_path_a", pathId: "no_privacy_concern" }
+                ]
+            },
+            9: {
+                question: "Do you need to run computations or execute code directly on those documents?",
+                answers: [
+                    { text: "Yes, run code", result: "chatgpt_plus", pathId: "code_execution" },
+                    { text: "No, just analysis", next: 13, pathId: "no_code_execution" }
+                ]
+            },
+            10: {
+                question: "Which open-source community fits your workflow better?",
+                answers: [
+                    { text: "Meta's Llama ecosystem", result: "llama", pathId: "llama" },
+                    { text: "A leaner, European-built model", result: "mistral_path_a", pathId: "mistral" },
+                    { text: "A developer-focused, high-reasoning model", result: "deepseek", pathId: "deepseek" }
+                ]
+            },
+            11: {
+                question: "Are you looking for an AI with a distinct conversational personality, not just a generic assistant?",
+                answers: [
+                    { text: "Yes, want personality", next: 14, pathId: "distinct_personality" },
+                    { text: "No, clean output", result: "claude_path_b", pathId: "clean_output" }
+                ]
+            },
+            12: {
+                question: "Are you more interested in real-time social trends, or personal coaching and emotional support?",
+                answers: [
+                    { text: "Real-time social trends", next: 15, pathId: "social_trends" },
+                    { text: "Personal coaching / emotional support", result: "pi_path_b", pathId: "personal_coaching" }
+                ]
+            },
+            13: {
+                question: "Are you looking for a free or low-cost option?",
+                answers: [
+                    { text: "Paid is fine", result: "chatgpt_plus", pathId: "paid" },
+                    { text: "Free tier", result: "gemini_path_c", pathId: "free" }
+                ]
+            },
+            14: {
+                question: "What kind of personality are you looking for?",
+                answers: [
+                    { text: "Warm, empathetic, and focused on personal growth", result: "pi_path_a", pathId: "warm" },
+                    { text: "Unfiltered, fast, and plugged into social media", result: "grok_path_a", pathId: "unfiltered" }
+                ]
+            },
+            15: {
+                question: "Do you want the AI to pull from live social media feeds and real-time posts?",
+                answers: [
+                    { text: "Yes, live feeds", result: "grok_path_b", pathId: "live_feeds" },
+                    { text: "No, web is fine", result: "gemini_path_b", pathId: "no_live_feeds" }
+                ]
+            }
+        };
+
+        // Result data with path-specific copies
+        const results = {
+            chatgpt_plus: {
+                name: "ChatGPT Plus",
+                description: "ChatGPT Plus is OpenAI's premium AI assistant, built for serious, high-output work across writing, analysis, coding, and data tasks.",
+                why: "You're working with large, data-heavy documents and need an AI that can actually process, analyze, and run code on them. ChatGPT Plus gives you Code Interpreter, file uploads, and one of the most capable reasoning engines available — all in one place. If your workflow involves spreadsheets, datasets, or running real computations, this is where you want to be.",
+                pathHint: "Since you need to handle large documents with code execution capabilities...",
+                url: "https://chat.openai.com"
+            },
+            claude_path_a: {
+                name: "Claude",
+                description: "Claude is Anthropic's AI assistant, known for handling long, complex documents with careful, nuanced analysis.",
+                why: "You're dealing with large documents and your priority is depth of writing and analysis — not running code. Claude has one of the longest context windows of any AI, meaning it can hold an entire book or codebase in memory and reason through it thoughtfully. It's especially strong at summarizing, editing, and drawing careful conclusions from dense material.",
+                pathHint: "Since you're focused on deep writing and analysis of large documents...",
+                url: "https://claude.ai"
+            },
+            claude_path_b: {
+                name: "Claude",
+                description: "Claude is Anthropic's AI assistant, designed for thoughtful, high-quality writing and coding without the noise.",
+                why: "You want a clean, reliable AI that does the work without performing a personality. Claude is consistently praised for the quality of its writing, its careful reasoning, and its ability to follow nuanced instructions. Whether you're drafting, editing, or building something, you'll get clear, useful output without a lot of fuss.",
+                pathHint: "Since you prefer clean, reliable output without a distinct personality...",
+                url: "https://claude.ai"
+            },
+            gemini_path_a: {
+                name: "Gemini",
+                description: "Gemini is Google's AI assistant, built directly into Google Docs, Gmail, Drive, and the rest of the Google Workspace ecosystem.",
+                why: "You already live inside Google Workspace, and Gemini is the only AI that's actually embedded there. Instead of copying and pasting between tools, you can use AI directly inside the documents and emails you're already working with. It's the most frictionless choice for anyone deep in the Google ecosystem.",
+                pathHint: "Since you're already working in Google Workspace...",
+                url: "https://gemini.google.com"
+            },
+            gemini_path_b: {
+                name: "Gemini",
+                description: "Gemini is Google's AI assistant, with strong web access and real-time search built in.",
+                why: "You want to stay on top of what's happening in the world without needing direct social media integration. Gemini is connected to Google Search and surfaces current, relevant information quickly. It's a dependable everyday assistant for research, summarization, and staying informed — without the social media noise.",
+                pathHint: "Since you want up-to-date web information without social media feeds...",
+                url: "https://gemini.google.com"
+            },
+            gemini_path_c: {
+                name: "Gemini",
+                description: "Gemini is Google's AI assistant, and its free tier is one of the most capable available without a subscription.",
+                why: "You need help with large, data-heavy documents but you're not ready to pay for a subscription. Gemini's free tier gives you access to strong AI capabilities backed by Google's infrastructure — including solid reasoning, web access, and support for long documents — at no cost.",
+                pathHint: "Since you need capable document handling without a subscription...",
+                url: "https://gemini.google.com"
+            },
+            copilot: {
+                name: "Microsoft Copilot",
+                description: "Microsoft Copilot is Microsoft's AI assistant, built directly into Word, Excel, Outlook, Teams, and Windows.",
+                why: "You're already in the Microsoft ecosystem and want an AI that works where you already are — not a separate app you have to switch to. Copilot is embedded right inside the tools you use every day. Ask it to summarize a document in Word, generate a formula in Excel, or draft a reply in Outlook, all without leaving your workflow.",
+                pathHint: "Since you're in the Microsoft ecosystem...",
+                url: "https://copilot.microsoft.com"
+            },
+            perplexity: {
+                name: "Perplexity",
+                description: "Perplexity is an AI-powered search engine that gives you direct, sourced answers with citations you can actually verify.",
+                why: "You need your information to be backed up with sources — not just a confident-sounding answer. Perplexity pulls from the web in real time and cites every claim, so you can trace exactly where the information came from. It's the closest thing to having a research assistant who shows their work.",
+                pathHint: "Since you need strict, sourced citations for your research...",
+                url: "https://perplexity.ai"
+            },
+            llama: {
+                name: "Llama",
+                description: "Llama is Meta's open-source AI model, freely available for anyone to download, run, and modify.",
+                why: "You want an open-source model and you're comfortable in the Meta ecosystem — the most widely adopted open-source AI community in the world. Llama gives you the flexibility to run the model locally, fine-tune it for specific tasks, and build on top of it however you need. It's the go-to choice for developers and researchers who want full control without vendor lock-in.",
+                pathHint: "Since you prefer the Meta Llama ecosystem...",
+                url: "https://llama.meta.com"
+            },
+            mistral_path_a: {
+                name: "Mistral",
+                description: "Mistral is a French AI company building lean, efficient open-source models with a focus on performance and privacy.",
+                why: "You want open-source, but you're drawn to a model that's a bit more compact and purpose-built — not a massive ecosystem play. Mistral's models are fast, efficient, and developed by a team with a strong commitment to European data standards. If you care about where your AI comes from and want something that punches above its size, Mistral is a smart pick.",
+                pathHint: "Since you prefer a leaner, European-built open-source model...",
+                url: "https://mistral.ai"
+            },
+            mistral_path_b: {
+                name: "Mistral",
+                description: "Mistral is a French AI company building efficient, privacy-respecting AI models that can be run on your own infrastructure.",
+                why: "You're working with sensitive documents and you're not comfortable sending them to a major corporate AI provider. Mistral lets you self-host, meaning your data stays on your own servers and never passes through someone else's system. For legal documents, confidential reports, or anything that needs to stay private, that's not a nice-to-have — it's the whole point.",
+                pathHint: "Since data privacy is a concern for your documents...",
+                url: "https://mistral.ai"
+            },
+            pi_path_a: {
+                name: "Pi",
+                description: "Pi is a personal AI designed around emotional intelligence, active listening, and genuine conversation.",
+                why: "You're not looking for a task-completion machine. You want an AI that actually engages with you — asks follow-up questions, remembers context, and responds with warmth. Pi is built specifically for that kind of interaction. Think of it less like a search engine and more like a thoughtful conversation partner who's always available and never in a rush.",
+                pathHint: "Since you want a warm, empathetic conversational AI...",
+                url: "https://pi.ai"
+            },
+            pi_path_b: {
+                name: "Pi",
+                description: "Pi is a personal AI designed around emotional intelligence, active listening, and genuine conversation.",
+                why: "You're less interested in finding facts and more interested in working things through — making decisions, reflecting on goals, or just having a conversation with something that listens. Pi specializes in that. It's calm, curious, and personal in a way most AI tools aren't. If you want support rather than just answers, Pi fits better than anything else on this list.",
+                pathHint: "Since you're interested in personal coaching and emotional support...",
+                url: "https://pi.ai"
+            },
+            grok_path_a: {
+                name: "Grok",
+                description: "Grok is xAI's AI assistant, built with a direct personality and real-time access to posts and trends on X (formerly Twitter).",
+                why: "You want an AI with an actual edge to it — not one that hedges everything and plays it safe. Grok is faster, more willing to engage with edgy or unconventional questions, and plugged directly into what's trending on social media right now. If you want an AI that keeps up with the internet in real time and doesn't feel like a corporate product, Grok is your match.",
+                pathHint: "Since you want an unfiltered AI with a distinct personality...",
+                url: "https://x.ai"
+            },
+            grok_path_b: {
+                name: "Grok",
+                description: "Grok is xAI's AI assistant with native real-time access to X (formerly Twitter), including live posts, trending topics, and social media conversations.",
+                why: "You specifically want an AI that's tapped into what people are actually saying on social media right now — not just what Google has indexed. Grok reads live posts from X, tracks trending conversations, and can summarize what the internet is talking about in real time. No other AI on this list does that.",
+                pathHint: "Since you want live social media feeds and real-time posts...",
+                url: "https://x.ai"
+            },
+            deepseek: {
+                name: "DeepSeek",
+                description: "DeepSeek is a Chinese AI lab's open-source model that has gained attention for its strong performance on complex reasoning and coding tasks.",
+                why: "You want open-source, and you need something that goes deep on technical problems. DeepSeek has made waves for matching or exceeding much larger models on coding and math benchmarks — while still being fully open and free to use. If your work is heavy on logic, code, or structured reasoning, DeepSeek is worth putting at the top of your list.",
+                pathHint: "Since you need a developer-focused, high-reasoning open-source model...",
+                url: "https://deepseek.com"
+            }
+        };
+
+        // State management
+        let currentNode = 'welcome';
+        let answerHistory = [];
+        let pathTaken = [];
+
+        // Calculate current progress
+        function calculateProgress() {
+            const current = answerHistory.length + 1;
+            const max = 5;
+            return { current, max };
+        }
+
+        // Render welcome screen
+        function renderWelcomeScreen() {
+            let html = `
+                <div class="welcome-screen">
+                    <h1 class="welcome-title">Find Your AI Match</h1>
+                    <p class="welcome-description">
+                        Answer a few quick questions and we'll point you to the AI assistant that actually fits how you work.
+                    </p>
+                    <button class="get-started-button" onclick="startQuiz()">Get Started</button>
+                </div>
+            `;
+            return html;
+        }
+
+        // Render question screen
+        function renderQuestion(nodeId) {
+            const node = decisionTree[nodeId];
+            const progress = calculateProgress();
+            const isStartScreen = nodeId === 1;
+            const isNode10 = nodeId === 10;
+
+            const progressPercent = ((progress.current - 1) / (progress.max - 1)) * 100;
+            let html = `
+                <div class="question-screen">
+                    <button class="back-button" onclick="goBack()">← Back</button>
+                    <div class="progress-indicator">
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill" style="width: ${progressPercent}%"></div>
+                        </div>
+                    </div>
+                    <h2 class="question">${node.question}</h2>
+                    <div class="answers ${isNode10 ? 'node-10' : ''}">
+            `;
+
+            node.answers.forEach((answer, index) => {
+                html += `<button class="answer-button" onclick="selectAnswer(${index})">${answer.text}</button>`;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        // Render result screen
+        function renderResult(resultKey) {
+            const result = results[resultKey];
+
+            let html = `
+                <div class="result-screen">
+                    <p class="result-match-label">Your match:</p>
+                    <h1 class="result-tool-name">${result.name}</h1>
+                    <p class="result-description">${result.description}</p>
+                    <p class="result-why"><strong>Why it's your match:</strong> ${result.why}</p>
+                    <div class="result-buttons">
+                        <a href="${result.url}" target="_blank" class="tool-link-button">Try ${result.name} →</a>
+                        <button class="start-over-button" onclick="startOver()">Not your match? Start Over</button>
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        // Start quiz from welcome screen
+        function startQuiz() {
+            currentNode = 1;
+            const screen = document.getElementById('app');
+            screen.classList.add('fade-out');
+
+            setTimeout(() => {
+                screen.innerHTML = renderQuestion(currentNode);
+                screen.classList.remove('fade-out');
+            }, 300);
+        }
+
+        // Main render function
+        function render() {
+            const app = document.getElementById('app');
+
+            if (currentNode === 'welcome') {
+                app.innerHTML = renderWelcomeScreen();
+            } else {
+                const node = decisionTree[currentNode];
+                if (node) {
+                    app.innerHTML = renderQuestion(currentNode);
+                }
+            }
+        }
+
+        // Handle answer selection
+        function selectAnswer(answerIndex) {
+            const node = decisionTree[currentNode];
+            const answer = node.answers[answerIndex];
+
+            // Record answer in history
+            answerHistory.push({
+                nodeId: currentNode,
+                selectedAnswer: answerIndex,
+                pathId: answer.pathId
+            });
+            pathTaken.push(answer.pathId);
+
+            // Add fade-out class
+            const screen = document.getElementById('app');
+            screen.classList.add('fade-out');
+
+            // Wait for transition, then update
+            setTimeout(() => {
+                if (answer.result) {
+                    // Show result
+                    currentNode = null;
+                    screen.innerHTML = renderResult(answer.result);
+                    screen.classList.remove('fade-out');
+                } else if (answer.next) {
+                    // Move to next question
+                    currentNode = answer.next;
+                    screen.innerHTML = renderQuestion(currentNode);
+                    screen.classList.remove('fade-out');
+                }
+            }, 300);
+        }
+
+        // Go back to previous question
+        function goBack() {
+            if (answerHistory.length === 0) {
+                // Go back to welcome screen
+                currentNode = 'welcome';
+                const screen = document.getElementById('app');
+                screen.classList.add('fade-out');
+
+                setTimeout(() => {
+                    screen.innerHTML = renderWelcomeScreen();
+                    screen.classList.remove('fade-out');
+                }, 300);
+                return;
+            }
+
+            const lastAnswer = answerHistory.pop();
+            pathTaken.pop();
+            currentNode = lastAnswer.nodeId;
+
+            const screen = document.getElementById('app');
+            screen.classList.add('fade-out');
+
+            setTimeout(() => {
+                screen.innerHTML = renderQuestion(currentNode);
+                screen.classList.remove('fade-out');
+            }, 300);
+        }
+
+        // Start over
+        function startOver() {
+            currentNode = 'welcome';
+            answerHistory = [];
+            pathTaken = [];
+
+            const screen = document.getElementById('app');
+            screen.classList.add('fade-out');
+
+            setTimeout(() => {
+                screen.innerHTML = renderWelcomeScreen();
+                screen.classList.remove('fade-out');
+            }, 300);
+        }
+
+        // Initial render
+        render();
+    </script>
+</body>
+</html>
